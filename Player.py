@@ -63,11 +63,10 @@ class AIPlayer:
 
         column = 0
         max_ele = - 2 ** 31
-        prob = 1 / self.num_cols(board)
         for col in range(7):
             if not self.isFull(board, col):
 
-                val = self.expectimax(self.fill(board, col, 1), -1, 4) * prob
+                val = self.expectimax(self.fill(board, col, 1), -1, 3)
                 if val > max_ele:
                     max_ele = val
                     column = col
@@ -77,40 +76,38 @@ class AIPlayer:
     def expectimax(self, board, player, depth):
 
         complete = self.isComplete(board)
-        eval = self.evaluation_function(board)
 
-        if depth == 0 or complete or abs(eval) >= 1000000000:
-            return eval
-        
+        if depth == 0 or complete:
+            return self.evaluation_function(board)
+                
         if player == 1:
 
             val = - 2 ** 31
-            prob = 1 / self.num_cols(board)
             for col in range(7):
                 if not self.isFull(board, col):
 
-                    val = max(prob * self.alpha_beta_prune(self.fill(board, col, player), -player, depth - 1), val)
+                    val = max(self.expectimax(self.fill(board, col, player), -player, depth - 1), val)
 
             return val
 
         else:
 
-            val = 2 ** 31
             prob = 1 / self.num_cols(board)
+            val = 0
+
             for col in range(7):
                 if not self.isFull(board, col):
 
-                    val = min(prob * self.alpha_beta_prune(self.fill(board, col, player), -player, depth - 1), val)
+                    val += prob * self.expectimax(self.fill(board, col, player), -player, depth - 1)
                     
             return val
 
     def alpha_beta_prune(self, board, player, alpha, beta, depth):
         
         complete = self.isComplete(board)
-        eval = self.evaluation_function(board)
 
-        if depth == 0 or complete or abs(eval) == 1000000000:
-            return eval
+        if depth == 0 or complete:
+            return self.evaluation_function(board)
         
         if player == 1:
 
@@ -188,11 +185,11 @@ class AIPlayer:
         eval = 0
 
         if self.scores(board, win_one):
-            return 1000000000
+            return 10000
         elif self.scores(board, win_two):
-            return -1000000000
+            return -10000
         
-        eval += 10000 * (self.scores(board, "1110") + self.scores(board, "0111"))
+        eval += 100 * (self.scores(board, "1110") + self.scores(board, "0111"))
         eval += 10 * (self.scores(board, "1100") + self.scores(board, "0011"))
         eval += 10 * (self.scores(board, "1001") + self.scores(board, "1001"))
         eval += 10 * (self.scores(board, "1010") + self.scores(board, "1010"))
